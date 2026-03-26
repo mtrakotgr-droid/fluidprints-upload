@@ -1,20 +1,22 @@
 const express = require('express');
 const fetch = require('node-fetch');
-const cors = require('cors');
 const multer = require('multer');
 const app = express();
 
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Manual CORS — runs before everything including multer
+app.use(function(req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
-app.options('*', cors());
-
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 700 * 1024 * 1024 }
+  limits: { fileSize: 100 * 1024 * 1024 } // 100MB per chunk
 });
 
 app.post('/upload-part', upload.single('chunk'), async (req, res) => {
